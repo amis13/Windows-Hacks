@@ -1,0 +1,49 @@
+Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+
+public class STARTUPINFO {
+    public int cb = Marshal.SizeOf(typeof(STARTUPINFO));
+    public string lpReserved = null;
+    public string lpDesktop = "winsta0\\\\default";
+    public string lpTitle = null;
+    public int dwX, dwY, dwXSize, dwYSize, dwXCountChars, dwYCountChars;
+    public int dwFillAttribute;
+    public int dwFlags;
+    public short wShowWindow;
+    public short cbReserved2;
+    public IntPtr lpReserved2;
+    public IntPtr hStdInput, hStdOutput, hStdError;
+}
+
+public class PROCESS_INFORMATION {
+    public IntPtr hProcess;
+    public IntPtr hThread;
+    public int dwProcessId;
+    public int dwThreadId;
+}
+
+public class NativeMethods {
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool CreateProcess(
+        string lpApplicationName,
+        string lpCommandLine,
+        IntPtr lpProcessAttributes,
+        IntPtr lpThreadAttributes,
+        bool bInheritHandles,
+        uint dwCreationFlags,
+        IntPtr lpEnvironment,
+        string lpCurrentDirectory,
+        [In] ref STARTUPINFO lpStartupInfo,
+        out PROCESS_INFORMATION lpProcessInformation);
+}
+"@ -ReferencedAssemblies 'System.Runtime.InteropServices'
+
+$si = New-Object STARTUPINFO
+$pi = New-Object PROCESS_INFORMATION
+
+[NativeMethods]::CreateProcess($null, "notepad.exe", [IntPtr]::Zero, [IntPtr]::Zero, $false, 0, [IntPtr]::Zero, $null, [ref]$si, [ref]$pi)
+Start-Sleep -Seconds 2
+
+$wshell = New-Object -ComObject WScript.Shell
+$wshell.Popup("Hola! he ganado acceso a tu sistema.`nU'RE PWNED 💀", 0, "⚠️ Sistema comprometido", 0x10)
